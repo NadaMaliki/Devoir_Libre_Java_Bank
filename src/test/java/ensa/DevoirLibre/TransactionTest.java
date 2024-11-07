@@ -37,7 +37,6 @@ public class TransactionTest {
         Compte compteDestination3 = new Compte();
         compteDestination3.setBanque(new Banque(3, "Espagne")); // Pays différents
         
-        // Liste de comptes de destination
         List<Compte> comptesDst = new ArrayList<>();
         
         // Test VIRINT (Transaction interne entre deux comptes de même banque et même pays)
@@ -150,6 +149,7 @@ public class TransactionTest {
         assertEquals(transaction.getType(), transactionFromJson.getType(), "Les types de transaction doivent être identiques après conversion");
     }
 
+    
     
     
 

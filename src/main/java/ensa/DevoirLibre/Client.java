@@ -6,6 +6,11 @@ import java.util.List;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -35,6 +40,7 @@ public class Client {
 			this.phone=ph; 
 		}
 		
+		// Sans base de données
 		public void AjoutClient(int numCL, String nom, String prenom, String addr, String email, String phone, List<Client> clients) {
 		    try {
 		        if (numCL <= 0) {
@@ -140,6 +146,68 @@ public class Client {
 	        Gson gson = new Gson();
 	        return gson.fromJson(json, Client.class);
 	    }
+	    
+	    
+	    
+	    //Avec la base de données
+	    public void AjoutClient_BD(String nom, String prenom, String addr, String email, String phone) {
+	        String sql = "INSERT INTO Client (nom, prenom, addresse, email, phone) VALUES (?, ?, ?, ?, ?)";
+
+	        try (Connection conn = DatabaseConnection.getConnection();
+	             PreparedStatement stmt = conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
+
+	            stmt.setString(1, nom);
+	            stmt.setString(2, prenom);
+	            stmt.setString(3, addr);
+	            stmt.setString(4, email);
+	            stmt.setString(5, phone);
+
+	            stmt.executeUpdate();
+
+	            ResultSet generatedKeys = stmt.getGeneratedKeys();
+	            if (generatedKeys.next()) {
+	                int numClient = generatedKeys.getInt(1);
+	                System.out.println("Client ajouté avec succès. NumClient généré: " + numClient);
+	            }
+
+	        } catch (SQLException e) {
+	            System.out.println("Erreur lors de l'ajout du client : " + e.getMessage());
+	        }
+	    }
+	    
+	    public static void RechercheClient_BD(int numClientRecherche) {
+	        String sql = "SELECT * FROM Client WHERE numclient = ?";
+
+	        try (Connection conn = DatabaseConnection.getConnection();
+	             PreparedStatement stmt = conn.prepareStatement(sql)) {
+	            
+	            stmt.setInt(1, numClientRecherche);
+	            ResultSet rs = stmt.executeQuery();
+
+	            if (rs.next()) {
+	                System.out.println("Résultat trouvé.");
+
+	                Client clientTrouve = new Client(
+	                    rs.getInt("numclient"),
+	                    rs.getString("nom"),
+	                    rs.getString("prenom"),
+	                    rs.getString("addresse"),
+	                    rs.getString("email"),
+	                    rs.getString("phone")
+	                );
+	                System.out.println("Client trouvé :\n");
+	                System.out.println(clientTrouve.toString());
+	            } else {
+	                System.out.println("Le client avec le numéro client " + numClientRecherche + " n'a pas été trouvé.");
+	            }
+
+	        } catch (SQLException e) {
+	            System.out.println("Erreur lors de la recherche du client : " + e.getMessage());
+	        }
+	    }
+	    
+	    
 
 		
 }
+
